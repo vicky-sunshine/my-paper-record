@@ -1,173 +1,129 @@
-# Introduction
-- SDN has also contributed to the virtualization of the network infrastructure
-	- providing the foundation to isolate, abstract, and share the network resources
-- Virtualized network functions (VNFs)
-	- compose the service chain
-	- basic elements to achieve the complete virtualization of service delivery and are commonly based on computing resources
-- In this article we try to clarify the evolution of SDN & NFV relationship in the context of service provisioning.
-- A real example, FlowNAC
-	- to illustrate the applicability of NFV using different architectures and the advantages offered by the SDN-enabled NFV approach in service provisioning scenarios.
+## Toward an SDN-Enabled NFV Architecture
 
-# Toward An SDN-Enabled NFV Architecture
-首先探討 NFV 以及 SDN 之間的關係，SDN 如何幫助 NFV 的 deployment
 
-目標：
-動態的去部署 NFV
-需求：
-1. 支援多個廠商
-2. 同個 service chain 可以使用相同的實體設施
-3. 不同 service chain 以及不同的 NF 之間必須要能夠獨立
---> SDN 是個很好的概念來幫助這些需求
+---
 
-針對 NFV 以及 SDN 之間的關係，整理了三種階段的進展
-1. SDN-agnostic NFV architecture
-2. SDN-aware NFV architecture
-3. SDN-enabled NFV architecture
+## Overview
+- Introduction
+- Related Work
+- Toward An SDN-Enabled NFV Architecture
+- FlowNAC: A Real Experience Exploring  Novel NFV Architectures
+- Issue and Chanllenge
+- Conclusion
+
+---
+
+## Introduction
+
+---
+
+## Related Work
+
+---
+
+## Toward An SDN-Enabled NFV Architecture
+
+- Goal: Enable dynamic deployment of NFVs
+- Requirement: 
+	- support multi-tenancy
+	- multiple service chain share same physical resource
+	- traffic steering between VNFs must be isolated
+- SDN is perfect to deal with these requirement.
+
+---
+
+## Toward An SDN-Enabled NFV Architecture
+
+- SDN provide network infrasctructure with enhance capababilities to improve how VNF are designed
+- The three evolution steps of their relationship are
+	- SDN-agnostic NFV architecture
+	- SDN-aware NFV architecture
+	- SDN-enabled NFV architecture
+
+---
 
 ## SDN-agnostic NFV architecture
-這是 NFV 發展的第一個 architecuture
-NF 已經經過虛擬化，脫離了對硬體的依賴
-但在NFV之間提供 connectivity 的設備，也就是 NFVI
-還沒有虛擬化，也就是還沒有提供可以用軟體操縱的介面
-就只是單純把 VNF boxes 連起來，接好連線後也不能更動
+- NFV
+	- First step fot enable the decoupling of software from hardware
+	- Each VNF is a software box to process traffic from underlying network
+- NFV Infrastructure (NVFI)  
+	- Just providing connectivity
+	- Limited to providing interface to the underlying network resources
 
-NFV: 有
-NFVI: limited to providing interface to the underlying network resources
+---
 
-Related Work:
-ETSI ISG for NFV
-"ETSI GS NFV 002: Network Functions Virtualisation (NFV); Architectural Framework", 2015
-"NFV Proofs of Concept", 2015
+## SDN-agnostic NFV architecture 
+- Related Work
+- ETSI ISG for NFV
+	- "ETSI GS NFV 002: Network Functions Virtualisation (NFV); Architectural Framework", 2015
+	- "NFV Proofs of Concept", 2015
 
+---
 
 ## SDN-aware NFV architecture
-將 SDN 的概念導入 NFV，網路資源們已經有了可以供外部操作的介面
-所以已經可以動態的去決定如何串連 VNF
-也就是不需要事先去決定實體的網路接法
-而是我要這個 service chain 時，才會動態的去產生 traffic 的 path
-但這個階段 SDN 也還只限於在 NFV之間提供 connectivity
-只是變成說可以動態的去決定誰跟誰連接，traffic 要怎麼走
-並沒有對 VNF 本身的功能做出貢獻，VNF 還是負責對所有的流量做運算
+- NFV
+	- Process all data traffic
+- NFVI
+	- Support interface to control
+	- Only provide connectivity with enhanced capabilities, such as dynamic control and configuration
+- Related Work:
+	- ONF, “OpenFlow-Enabled SDN and Network Functions Virtualization”, 2015
 
-NFV: process all data traffic
-NFVI: only provide connectivity with enhanced capabilities, such as dynamic control and configuration
-
-Related Work:
-ONF
-“OpenFlow-Enabled SDN and Network Functions Virtualization”, 2015
+---
 
 ## SDN-enabled NFV architecture
-跟前兩個階段的最大不同是，在這個階段 NFV 和 NFVI 已經可以合作，也就是 NFVI 的功能也是 VNF 的一部份
-Based on this programmability of NFVI already in place, 
-the proposal is to explore the possibility of exploiting the network infrastructure layer to implement part of the VNF functionality
-- data traffic performance
-- wider placement scope
-- better resource utilization, to avoid traffic going up to and down from a VM to process the frames
+- Based on this programmability of NFVI 
+	- The network infrastructure layer to may become a part of implementating the VNF
+- Advantages
+	- data traffic performance
+	- wider placement scope
+	- better resource utilization, to avoid traffic going up to and down from a VM to process the frames
 
-## 
-那什麼時候會需要利用 NFVI 來做 VNF，什麼時候是需要純 compute resource 來做呢？
+---
 
-### Type of VNF processing
-在這邊先將 VNF 所處理的複雜度分為三個種類:
-#### stateless
-previously matched frames do not affect subsequent frames
-eg: stateless firewall
-在 traffic 當中，對前一個封包的處理，不會影響對下一個封包的處理
+## VNF Design Consideration
+- Which is the best way to combine compute and network resource to implement VNFs?
+- There are three processing complexity of VNF
+	- stateless
+	- limited or light-weight state
+	- stateful
 
-#### limited or light-weight state
-State can be kept in the data path, such as flow-level counters, timers for flow expiration, and queue-level counters 
-eg: QoS support
-有些比較跟 datapath 相關 state，譬如說 counters, timers ，如果 VNF 跟這些 state 相關的，就會被分在這類
+---
 
-#### stateful
-在 traffic 當中，對前一個封包的處理，會影響對下一個封包的處理
-每個封包不能獨立看待
+## VNF Design Consideration
+- Stateless
+	- Previously matched frames **do not affect** subsequent frames
+- Limited or light-weight state
+	- State can be kept in the data path, such as flow-level counters, timers for flow expiration, and queue-level counters 
+- Stateful
+	- Processing of each packet is not independent
 
-設計目標是說希望
-1. The stateful component is based on virtual compute resources to keep the state associated with the VNF, since software packages are good at managing state machines. 
-2. The stateless component makes use of SDN datapath resources to perform data traffic processing efficiently. 
+---
 
-==> The main idea is to keep data processing in hardware as much as possible, and only forward the data traffic to the stateful component when the processing is also stateful.
-(Fig 2)
+##  VNF Design Consideration
+- Design Goal:
+	- The stateful component is based on virtual compute resources to keep the state associated with the VNF
+	- The stateless component makes use of SDN datapath resources to perform data traffic processing efficiently. 
+- The main idea is to keep data processing in hardware as much as possible, and only forward the data traffic to the stateful component when the processing is also stateful.
 
-### Design of VNF
-根據這些想法，實作 VNF 的方式也有三種
-a. solely with compute resources 
-b. solely with network resources
-c. splitting the design following the aforementioned separation of stateful and stateless components
-(Figure 3)
+---
 
-怎樣的 VNF 適合怎樣的實作的方式呢？這邊做了一個整理
-配合 data processing speed and complexity
-表1
+##  VNF Design Consideration
 
-# FlowNAC: A Real Experience Exploring  Novel NFV Architectures
-以下是作者使用第三種架構的例子
+- There are also three ways to implement VNFs
+	- solely with compute resources 
+	- solely with network resources
+	- splitting the design following the aforementioned separation of stateful and stateless components
 
-## Type of traffic
-### a-type: Authentication and authorization
-(AA) traffic that must be processed by the FlowNAC VNF to keep the state associated with each AA process. Being related to the AA process, it will be limited in time and volume.
 
-### b-type: Data traffic for the authorized services that must be granted access to the network.
-### c-type: Data traffic for non-authorized services (the remaining traffic generated by the user), which must be denied access to the network. 
-This traffic completely depends on the user and its operating system, running applications, viruses, and so on. 
-Similar to b-type traffic, the FlowNAC VNF must enforce the access control, but in this case to prevent these frames accessing the resources.
 
-## 如果用原本的架構
-One VNF block handle all traffic (both AA and data traffic)
-1. all data traffic send to VNF block
-2. VNF block handle AA data and decide which data traffic is allowed
+---
 
-problems:
-relies on solely computer resources
-scalability would be limited by the availability of computing resources.
+## Issue and Challenge
+- VNFs designed also employing network elements add complexity to the optimal placement decision. 
+- The NFV framework must now orchestrate an additional type of resource with its own constraints (e.g., the rule insertion performance or flow table size).
 
-## Proposed Architecture 
+---
 
-1. AA block
-keeps the state of the AA process currently excuted
-computer resource
-2. Access control enforcing block
-limits the access only to already authorized services and does not require any state
-networking device
-
-Step:
-1. Only AA traffic is sent to the AA block to be processed and SDN switch is configured by the result of AA process
-2. Authorized and unauthorized data traffic is processed by the SDN switch
-    - Authorized traffic is allowed
-    - Unauthorized traffic is drop
-
-computer resource only need to handle AA traffic and authorized data traffic
-networking resources used for the access control (cost most time)
-1. data processing speed of VNF is imporved
-2. reducing general network utilization
-
-# Issue and Challenge
-1. VNFs designed also employing network elements add complexity to the optimal placement decision. 
-2. The NFV framework must now orchestrate an additional type of resource with its own constraints (e.g., the rule insertion performance or flow table size).
-
-# Conclusion
-the processing of network packets is partially offloaded to the network element (the SDN switch) 
-while maintaining the stateful processing of the VNF on the compute element.
-
-# Total Comment:
-這篇貢獻點是整理了近幾年 SDN 和 NFV 關係的進展
-還有從 NFV 以及 SDN 之間的關係去著眼 VNF 的設計（之前都沒看過有人利用這個角度）
-所以他所說的的 SDN-Enabled NFV Architecture 是指利用 SDN 的概念來設計 VNF 的 architecture
-
-但缺點是對於這種新架構的 VNF 對於整條 Service Chain 設計以及部署的影響著墨較少（不管好處或壞處）
-舉的例子也沒有 Service Chain 的感覺（嚴格說起來例子中的 FlowNAC 只是一個 VNF 而已，Service Chain 是要多個 VNF 來串)
-感覺這種 VNF 只適合放在 Service Chain 第一個 VNF 的感覺
-
-目前看到在談論 Service Chain 的 paper
-用來兜 SC 的 VNF 似乎都僅限於 SDN-aware NFV architecture
-還沒有看到有這兩種混用的 Scenario，也似乎還沒有看到在談論兩種混用的 Service Chain 要怎麼設計部署
-或許是個方向(?)
-
-對我而言學到的點是
-因為目前我們所發展的 VNF 其實都直接是第三種
-但是看到大家在做 Service chain 都只有第二種
-所以我在看  Service chain 架構，試著想把架構套用到我們實驗室的 VNF 時
-總會覺得不一樣，要套用都怪怪的，但又說不出所以然
-這篇是讓我從 SDN 和 NFV 之間互動關係的觀點來看
-原來是因為這樣子的差異（二三類的差異），所以不能像大家的 Service Chain 一樣套架構
+## Conclusion
+- The processing of network packets is partially offloaded to the network element (the SDN switch)  while maintaining the stateful processing of the VNF on the compute element.
